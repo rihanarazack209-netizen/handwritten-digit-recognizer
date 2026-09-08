@@ -35,14 +35,16 @@ st.success(f"Model ready • Test accuracy: {accuracy * 100:.2f}%")
 st.subheader("🧪 Try a built-in handwritten sample")
 sample_index = st.slider("Choose a sample", 0, len(digits.images) - 1, 0)
 
-sample_image = digits.images[sample_index]
+sample_image = (digits.images[sample_index] / 16.0).astype('float32')
+# Convert the scikit-learn 0–16 float image to uint8 for Streamlit image rendering.
+sample_image_display = (sample_image / 16.0 * 255.0).clip(0, 255).astype(np.uint8)
 sample_features = digits.data[sample_index].reshape(1, -1)
 sample_prediction = int(model.predict(sample_features)[0])
 actual = int(digits.target[sample_index])
 
 col1, col2 = st.columns(2)
 with col1:
-    st.image(sample_image, width=220, caption=f"Actual digit: {actual}")
+    st.image(sample_image_display, width=220, caption=f"Actual digit: {actual}")
 with col2:
     st.metric("Predicted digit", sample_prediction)
     if sample_prediction == actual:
