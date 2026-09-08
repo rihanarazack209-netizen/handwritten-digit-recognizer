@@ -35,9 +35,9 @@ st.success(f"Model ready • Test accuracy: {accuracy * 100:.2f}%")
 st.subheader("🧪 Try a built-in handwritten sample")
 sample_index = st.slider("Choose a sample", 0, len(digits.images) - 1, 0)
 
-sample_image = (digits.images[sample_index] / 16.0).astype('float32')
-# Convert the scikit-learn 0–16 float image to uint8 for Streamlit image rendering.
-sample_image_display = (sample_image / 16.0 * 255.0).clip(0, 255).astype(np.uint8)
+sample_image = digits.images[sample_index].astype('float32')
+# Convert the scikit-learn 0–16 float image to uint8 for clear Streamlit rendering.
+sample_image_display = np.clip(sample_image / 16.0 * 255.0, 0, 255).astype(np.uint8)
 sample_features = digits.data[sample_index].reshape(1, -1)
 sample_prediction = int(model.predict(sample_features)[0])
 actual = int(digits.target[sample_index])
@@ -58,6 +58,9 @@ st.subheader("✍️ Upload your own handwritten digit")
 st.caption("For best results, upload a clear image containing one centered handwritten digit on a plain background.")
 
 uploaded = st.file_uploader("Upload PNG, JPG, or JPEG", type=["png", "jpg", "jpeg"])
+
+if uploaded is not None:
+    st.info("Image uploaded. Click **Detect Digit** below.")
 
 
 def image_to_features(image: Image.Image):
@@ -88,8 +91,12 @@ def image_to_features(image: Image.Image):
     return values, resized
 
 if uploaded is not None:
-    image = Image.open(uploaded)
+    image = Image.open(uploaded).convert("RGB")
     st.image(image, caption="Uploaded image", width=260)
+    detect = st.button("🔍 Detect Digit", type="primary", use_container_width=True)
+
+    if not detect:
+        st.stop()
 
     features, processed = image_to_features(image)
     if features is None:
